@@ -200,7 +200,12 @@ def generate_webpage(records: List[Record], results: List[Dict[str, module_resul
         regions_written = sum(len(record.get_regions()) for record in records)
         job_id = os.path.basename(options.output_dir)
 
+<<<<<<< HEAD
 >>>>>>> f92b796f (initial commit: --mibig-mode and --mibig-json <json-file-path>)
+=======
+        annotation_filename = "{}.json".format(os.path.splitext(os.path.basename(options.mibig_json))[0])
+
+>>>>>>> 53284692 (add 'download mibig annotation' button)
         html_sections = generate_html_sections(record_layers_with_regions, results_by_record_id, options)
 
         svg_tooltip = ("Shows the layout of the region, marking coding sequences and areas of interest. "
@@ -216,6 +221,7 @@ def generate_webpage(records: List[Record], results: List[Dict[str, module_resul
                               results_by_record_id=results_by_record_id,
                               config=options, job_id=job_id, page_title=page_title,
                               records_without_regions=record_layers_without_regions,
+<<<<<<< HEAD
 <<<<<<< HEAD
                               svg_tooltip=svg_tooltip,
                               annotation_filename=annotation_filename, mibig_id=mibig_id)
@@ -253,6 +259,10 @@ def update_cds_description(js_record, annotations):
             js_cds["description"] = re.sub("(\(total: (.+) nt\)<br>)", r"\1{}".format(template.render(annotation=annotation)), str(js_cds["description"]))
 =======
                               svg_tooltip=svg_tooltip)
+=======
+                              svg_tooltip=svg_tooltip,
+                              annotation_filename=annotation_filename)
+>>>>>>> 53284692 (add 'download mibig annotation' button)
         result_file.write(aux)
 
 
