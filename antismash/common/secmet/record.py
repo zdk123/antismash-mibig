@@ -59,7 +59,7 @@ class Record:
                  "_candidate_clusters", "_candidate_clusters_numbering",
                  "_subregions", "_subregion_numbering",
                  "_regions", "_region_numbering", "_antismash_domains_by_tool",
-                 "_antismash_domains_by_cds_name"]
+                 "_antismash_domains_by_cds_name", "_altered_from_input"]
 
     def __init__(self, seq: Union[Seq, str] = "", transl_table: int = 1, **kwargs: Any) -> None:
         # prevent paths from being used as a sequence
@@ -70,6 +70,7 @@ class Record:
         self.record_index: Optional[int] = None
         self.original_id = None
         self.skip: Optional[str] = None  # TODO: move to yet another abstraction layer?
+        self._altered_from_input: List[str] = []
         self._genes: List[Gene] = []
 
         self._cds_features: List[CDSFeature] = []
@@ -634,7 +635,16 @@ class Record:
             record.
         """
         if feature.type == CDSFeature.FEATURE_TYPE:
-            self.add_cds_feature(CDSFeature.from_biopython(feature, record=self))
+            try:
+                cds = CDSFeature.from_biopython(feature, record=self)
+            except ValueError as err:
+                # if it isn't a translation error, don't try to handle it
+                if "translation" not in str(err):
+                    raise
+                feature.qualifiers.pop("translation")
+                cds = CDSFeature.from_biopython(feature, record=self)
+                self.add_alteration("regenerated translation for %s: %s" % (cds.get_name(), str(err)))
+            self.add_cds_feature(cds)
         elif feature.type == Gene.FEATURE_TYPE:
             self.add_gene(Gene.from_biopython(feature, record=self))
         elif feature.type == Protocluster.FEATURE_TYPE:
@@ -786,6 +796,8 @@ class Record:
                         feature.qualifiers.pop("gene", "")
                     else:
                         feature.qualifiers["gene"][0] = original_gene_name
+                record.add_alteration("%s crossed the origin and was split into two features" % (
+                                      original_gene_name or "a feature"))
         try:
             for cls, features in postponed_features.values():
                 for feature in features:
@@ -969,6 +981,17 @@ class Record:
         counter = Counter(str(self.seq))
         gc_count = counter['G'] + counter['C'] + counter['g'] + counter['c']
         return gc_count / len(self)
+
+    def add_alteration(self, description: str) -> None:
+        """ Adds a description of a fundamental change to input values to the record """
+        assert description
+        self._altered_from_input.append(description)
+
+    def get_alterations(self) -> Tuple[str, ...]:
+        """ Returns any alterations made from the original input,
+            not including any made by loading with biopython
+        """
+        return tuple(self._altered_from_input)
 
     def strip_antismash_annotations(self) -> None:
         """ Removes all antismash features and annotations from the record """
