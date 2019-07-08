@@ -27,7 +27,7 @@
         {% else %}
           {% set startend="" %}
         {% endif %}
-        This entry is originally from NCBI GenBank <a href="https://www.ncbi.nlm.nih.gov/nuccore/{{data['cluster']['loci']['accession']}}{{startend}}">{{data.cluster.loci.accession}}</a>
+        This entry is originally from NCBI GenBank <a href="https://www.ncbi.nlm.nih.gov/nuccore/{{data['cluster']['loci']['accession']}}{{startend}}">{{data["cluster"]["loci"]["accession"]}}</a>
         {%- if record.get_alterations() -%}
             , but <span class="modification-warning">has been modified</span> (see Modifications tab for details)
         {%- endif %}.
