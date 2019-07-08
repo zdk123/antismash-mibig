@@ -61,7 +61,8 @@ class Record:
                  "_candidate_clusters", "_candidate_clusters_numbering",
                  "_subregions", "_subregion_numbering",
                  "_regions", "_region_numbering", "_antismash_domains_by_tool",
-                 "_antismash_domains_by_cds_name", "_altered_from_input"]
+                 "_antismash_domains_by_cds_name",
+                 "_altered_from_input", "_deduplicated_cds_names"]
 
     def __init__(self, seq: Union[Seq, str] = "", transl_table: int = 1, **kwargs: Any) -> None:
         # prevent paths from being used as a sequence
@@ -660,7 +661,26 @@ class Record:
                 feature.qualifiers.pop("translation")
                 cds = CDSFeature.from_biopython(feature, record=self)
                 self.add_alteration("regenerated translation for %s: %s" % (cds.get_name(), str(err)))
-            self.add_cds_feature(cds)
+            try:
+                self.add_cds_feature(cds)
+            except ValueError as err:
+                if "same name for mapping" not in str(err):
+                    raise err
+                original_name = cds.get_name()
+                if original_name not in self._deduplicated_cds_names:
+                    self._deduplicated_cds_names[original_name] = []
+                new_name = "%s_rename%d" % (original_name, len(self._deduplicated_cds_names) + 1)
+                self._deduplicated_cds_names[original_name].append(new_name)
+                if cds.locus_tag:
+                    cds.locus_tag = new_name
+                elif cds.gene:
+                    cds.gene = new_name
+                elif cds.protein_id:
+                    cds.protein_id = new_name
+                assert new_name not in self._cds_by_name
+                self.add_cds_feature(cds)
+                self._altered_from_input.append("CDS with name %s renamed to %s to avoid duplicates" % (
+                                                original_name, new_name))
         elif feature.type == Gene.FEATURE_TYPE:
             self.add_gene(Gene.from_biopython(feature, record=self))
         elif feature.type == Protocluster.FEATURE_TYPE:
