@@ -505,9 +505,10 @@ def write_outputs(results: serialiser.AntismashResults, options: ConfigType) -> 
 
     logging.debug("Creating results page")
     if options.mibig_mode:
+        mibig_acc = os.path.splitext(os.path.basename(options.mibig_json))[0]
         html_mibig.write(results.records, module_results_per_record, options, get_all_modules())
         logging.debug("Saving mibig annotation file")
-        annotation_filename = "{}.json".format(os.path.splitext(os.path.basename(options.mibig_json))[0])
+        annotation_filename = "{}.json".format(mibig_acc)
         shutil.copy(options.mibig_json, os.path.join(options.output_dir, annotation_filename))
 
     else:
@@ -517,7 +518,14 @@ def write_outputs(results: serialiser.AntismashResults, options: ConfigType) -> 
     svg.write(options, module_results_per_record)
 
     # convert records to biopython
-    bio_records = [record.to_biopython() for record in results.records]
+    bio_records = []
+    for record in results.records:
+        if options.mibig_mode:
+            record.id = "{}.1".format(mibig_acc)
+            record.name = mibig_acc
+            record.annotations['accessions'].insert(0, mibig_acc)
+        bio_records.append(record.to_biopython())
+
 
     # add antismash meta-annotation to records
     add_antismash_comments(list(zip(results.records, bio_records)), options)
