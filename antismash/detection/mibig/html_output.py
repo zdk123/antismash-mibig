@@ -154,12 +154,17 @@ class ReferenceCollection:
         'references',
     )
 
+<<<<<<< HEAD
     def __init__(self, publications: List[Publication]) -> None:
+=======
+    def __init__(self, publications: List[str]) -> None:
+>>>>>>> 1d94e864 (mibig_html: Look up article data for pubmed IDs)
         self.client = Client(api_key=os.environ.get("NCBI_API_KEY", None))
         self.references = {}  # Dict[ReferenceLink]
         pmids = []
 
         for publication in publications:
+<<<<<<< HEAD
             info = None
 
             if publication.category == "pubmed":
@@ -175,6 +180,23 @@ class ReferenceCollection:
                 reference = publication.content
 
             self.references[publication.content] = ReferenceLink(publication.category, reference, publication.content, info)
+=======
+            [category, index] = publication.split(":", 1)
+            title = index
+            info = None
+
+            if category == "pubmed":
+                reference = "https://www.ncbi.nlm.nih.gov/pubmed/{}".format(index)
+                pmids.append(index)
+            elif category == "patent":
+                reference = "https://patents.google.com/patent/{}".format(index)
+            elif category == "doi":
+                reference = "https://dx.doi.org/{}".format(index)
+            elif category == "reference":
+                reference = index
+
+            self.references[index] = ReferenceLink(category, reference, title, info)
+>>>>>>> 1d94e864 (mibig_html: Look up article data for pubmed IDs)
 
         self._resolve_pmids(pmids)
 
@@ -184,8 +206,11 @@ class ReferenceCollection:
 
 
     def _resolve_pmids(self, pmids: List[str]) -> None:
+<<<<<<< HEAD
         if not pmids:
             return
+=======
+>>>>>>> 1d94e864 (mibig_html: Look up article data for pubmed IDs)
         articles = self.client.efetch(db="pubmed", id=pmids)
         for article in articles:
             self.references[article.pmid].title = article.title
