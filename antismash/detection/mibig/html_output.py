@@ -3,7 +3,10 @@
 
 """ Handles HTML output for the MIBiG sideloader """
 
+import os
 from typing import List
+
+from eutils import Client
 
 from antismash.common import path
 from antismash.common.module_results import ModuleResults
