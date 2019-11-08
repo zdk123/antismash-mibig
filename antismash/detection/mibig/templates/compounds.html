@@ -54,6 +54,39 @@
                 </tbody>
             </table>
         </div>
-        {% endfor %}
+        <div id="compound-drawing-modal" class="modal-container">
+          <div class="modal-content">
+            <canvas class="smiles-canvas-modal" data-smiles="{{compound.chem_struct}}"></canvas>
+          </div>
+        </div>
+        {% else %}
+        (no structure information available)
+        {% endif %}
+      </div>
+    </div>
+    <div class="compound-formula">
+      <div class="box">
+      {% for part in compound.molecular_formula.parts %}{{part.atom}}<sub>{{part.count}}</sub>{% endfor %}
+      </div>
+    </div>
+    <div class="compound-references">
+      <div class="box">
+      {% if compound.database_id %}
+      Chemical database entries<br>
+      {% for entry in compound.database_id %}
+      {% if entry.db == "npatlas" %}
+      <a href="https://www.npatlas.org/joomla/index.php/explore/compounds#npaid=NPA{{'%06d' % entry.reference|int}}.html">NPAtlas</a><br>
+      {% elif entry.db == "pubchem" %}
+      <a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{entry.reference}}">PubCHEM</a><br>
+      {% elif entry.db == "chebi" %}
+      <a href="https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI%3A{{entry.reference}}">ChEBI</a><br>
+      {% elif entry.db == "chembl" %}
+      <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL{{entry.reference}}">ChEMBL</a><br>
+      {% elif entry.db == "chemspider" %}
+      <a href="http://www.chemspider.com/Chemical-Structure.{{entry.reference}}.html">ChemSpider</a><br>
+      {% endif %}
+      {% endfor %}
+      {% endif %}
+      </div>
     </div>
 </div>

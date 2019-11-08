@@ -34,7 +34,7 @@ def mibig_loader(annotations_file: str, record: Record) -> MibigAnnotations:
     product = ", ".join(annotations["cluster"]["biosyn_class"])
     loci = annotations["cluster"]["loci"]
     assert loci["accession"] == record.id
-    start = loci.get("start_coord", 1) - 1 
+    start = loci.get("start_coord", 1) - 1
     end = loci.get("end_coord", len(record.seq))
     cluster = Protocluster(FeatureLocation(start, end), FeatureLocation(start, end),
                                 tool="mibig", cutoff=-1,
