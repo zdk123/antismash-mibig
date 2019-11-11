@@ -544,10 +544,6 @@ def write_outputs(results: serialiser.AntismashResults, options: ConfigType) -> 
     # convert records to biopython
     bio_records = []
     for record in results.records:
-        if options.mibig_mode:
-            record.id = "{}.1".format(mibig_acc)
-            record.name = mibig_acc
-            record.annotations['accessions'].insert(0, mibig_acc)
         bio_records.append(record.to_biopython())
 
 
