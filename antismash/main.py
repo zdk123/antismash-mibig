@@ -61,7 +61,7 @@ from antismash.custom_typing import AntismashModule
 from antismash.detection import mibig
 from antismash.outputs import html_mibig
 
-__version__ = "6.0.0alpha1"
+__version__ = "6.0.0"
 
 
 def get_all_modules() -> List[AntismashModule]:
