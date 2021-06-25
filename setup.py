@@ -17,7 +17,7 @@ long_description = read('README.md')
 install_requires = [
     'eutils',
     'numpy',
-    'biopython >=1.78',
+    'biopython == 1.78',
     'helperlibs',
     'jinja2',
     'joblib',
