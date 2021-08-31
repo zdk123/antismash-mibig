@@ -29,14 +29,6 @@ from .promoters import Promoter, CombinedPromoter, get_promoters, DuplicatePromo
 NAME = "cassis"
 SHORT_DESCRIPTION = "Detect secondary metabolite gene cluster (motif based)"
 DETECTION_STAGE = DetectionStage.AREA_REFINEMENT
-<<<<<<< HEAD
-=======
-
-MAX_PERCENTAGE = 14.  # the maximum percentage of promoters sharing a motif
-MAX_GAP_LENGTH = 2  # the maximum gap length between islands
-
-VERBOSE_DEBUG = False  # whether to show all debugging info or not
->>>>>>> 2975ef9b (main: automatically detect, import, and use detection modules)
 
 
 class CassisResults(module_results.DetectionResults):
