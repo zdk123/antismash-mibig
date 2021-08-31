@@ -90,6 +90,7 @@ def _gather_analysis_modules() -> List[AntismashModule]:
 
 
 _ANALYSIS_MODULES = _gather_analysis_modules()
+_DETECTION_MODULES = _gather_detection_modules()
 
 
 def get_all_modules() -> List[AntismashModule]:
