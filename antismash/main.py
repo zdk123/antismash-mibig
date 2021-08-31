@@ -84,6 +84,25 @@ def _gather_analysis_modules() -> List[AntismashModule]:
     return modules
 
 
+def _gather_detection_modules() -> Dict[DetectionStage, List[AntismashModule]]:
+    modules: Dict[DetectionStage, List[AntismashModule]] = {
+        DetectionStage.FULL_GENOME: [],
+        DetectionStage.AREA_FORMATION: [],
+        DetectionStage.AREA_REFINEMENT: [],
+        DetectionStage.PER_AREA: [],
+    }
+    for module_data in pkgutil.walk_packages([get_full_path(__file__, "detection")]):
+        name = f"antismash.detection.{module_data.name}"
+        module = cast(AntismashModule, importlib.import_module(name))
+        stage = getattr(module, "DETECTION_STAGE", "")
+        if not stage:
+            raise ValueError(f"detection module missing DETECTION_STAGE attribute: {name}")
+        if stage not in modules:
+            raise ValueError(f"detection module with unknown detection stage: {stage}")
+        modules[stage].append(module)
+    return modules
+
+
 _ANALYSIS_MODULES = _gather_analysis_modules()
 _DETECTION_MODULES = _gather_detection_modules()
 
