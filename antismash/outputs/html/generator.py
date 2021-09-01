@@ -151,13 +151,8 @@ def generate_html_sections(records: List[RecordLayer], results: Dict[str, Dict[s
 
 
 def generate_webpage(records: List[Record], results: List[Dict[str, ModuleResults]],
-<<<<<<< HEAD
                      options: ConfigType, all_modules: List[AntismashModule]) -> str:
     """ Generates the HTML itself """
-=======
-                     options: ConfigType, all_modules: List[AntismashModule]) -> None:
-    """ Generates and writes the HTML itself """
->>>>>>> 370ed770 (html,common.layers: fix circular import)
 
     generate_searchgtr_htmls(records, options)
     json_records, js_domains, js_results = build_json_data(records, results, options, all_modules)
