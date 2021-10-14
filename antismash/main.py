@@ -160,6 +160,19 @@ def get_support_modules() -> List[AntismashModule]:
     return [genef]
 
 
+def get_support_modules() -> List[AntismashModule]:
+    """ Return a list of support modules
+
+        Arguments:
+            None
+
+        Returns:
+            a list of modules
+    """
+    genef = cast(AntismashModule, genefinding)
+    return [genef]
+
+
 def verify_options(options: ConfigType, modules: List[AntismashModule]) -> bool:
     """ Find and display any incompatibilities in provided options
 
