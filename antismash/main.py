@@ -43,7 +43,6 @@ from antismash.detection import mibig
 from antismash.outputs import html_mibig
 
 __version__ = "6.0.0"
-<<<<<<< HEAD
 
 
 def _gather_analysis_modules() -> List[AntismashModule]:
@@ -75,8 +74,17 @@ def _gather_detection_modules() -> Dict[DetectionStage, List[AntismashModule]]:
 
 _ANALYSIS_MODULES = _gather_analysis_modules()
 _DETECTION_MODULES = _gather_detection_modules()
-=======
->>>>>>> 5eb541f4 (chore: bump version to 6.0.0)
+
+
+def _gather_analysis_modules() -> List[AntismashModule]:
+    modules = []
+    for module_data in pkgutil.walk_packages([get_full_path(__file__, "modules")]):
+        module = importlib.import_module(f"antismash.modules.{module_data.name}")
+        modules.append(cast(AntismashModule, module))
+    return modules
+
+
+_ANALYSIS_MODULES = _gather_analysis_modules()
 
 
 def get_all_modules() -> List[AntismashModule]:
