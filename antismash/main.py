@@ -81,6 +81,17 @@ def _gather_detection_modules() -> Dict[DetectionStage, List[AntismashModule]]:
 _ANALYSIS_MODULES = _gather_analysis_modules()
 _DETECTION_MODULES = _gather_detection_modules()
 
+def _gather_analysis_modules() -> List[AntismashModule]:
+    modules = []
+    for module_data in pkgutil.walk_packages([get_full_path(__file__, "modules")]):
+        module = importlib.import_module(f"antismash.modules.{module_data.name}")
+        modules.append(cast(AntismashModule, module))
+    return modules
+
+
+_ANALYSIS_MODULES = _gather_analysis_modules()
+
+
 def get_all_modules() -> List[AntismashModule]:
     """ Return a list of default modules
 
