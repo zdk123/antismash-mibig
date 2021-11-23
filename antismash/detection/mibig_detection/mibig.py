@@ -21,7 +21,6 @@ from urllib.error import HTTPError
 from antismash.common.errors import AntismashInputError
 from mibig.converters.read.top import Everything
 
-
 class MibigAnnotations(DetectionResults):
     def __init__(self, record_id: str, area: SubRegion, data: Everything, cache_file: str) -> None:
         super().__init__(record_id)
