@@ -4,7 +4,7 @@
 """ Handles HTML output for the MIBiG sideloader """
 
 import os
-from typing import List
+from typing import List, Set
 
 from eutils import Client
 
@@ -18,7 +18,7 @@ from mibig.converters.read.cluster import Publication
 from .mibig import MibigAnnotations
 
 
-def will_handle(_products: List[str]) -> bool:
+def will_handle(_products: List[str], _product_categories: Set[str]) -> bool:
     """ Returns true if one or more relevant products are present """
     return True
 
