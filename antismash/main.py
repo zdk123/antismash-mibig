@@ -36,10 +36,16 @@ from antismash.common.path import get_full_path
 from antismash.common.secmet import Record
 from antismash.common import subprocessing
 from antismash.detection import DetectionStage
+from antismash.detection import (cluster_hmmer,
+                                 hmm_detection,
+                                 nrps_pks_domains,
+                                 genefunctions,
+                                 )
+from antismash.modules import clusterblast
 from antismash.outputs import html, svg
 from antismash.support import genefinding
 from antismash.custom_typing import AntismashModule
-from antismash.detection import mibig
+from antismash.detection import mibig_detection as mibig
 from antismash.outputs import html_mibig
 
 __version__ = "6.1.0"
@@ -250,7 +256,7 @@ def run_mibig_detection(record: Record, options: ConfigType,
     """
     timings = {}  # type: Dict[str, float]
 
-    logging.info("Loading MIBiG annotations")
+    logging.info("Loading MiBIG annotations")
     run_module(record, cast(AntismashModule, mibig), options, module_results, timings)
     results = module_results.get(mibig.__name__)
     if not results:
@@ -505,10 +511,9 @@ def write_outputs(results: serialiser.AntismashResults, options: ConfigType) -> 
 
     logging.debug("Creating results page")
     if options.mibig_mode:
-        mibig_acc = _get_mibig_acc(options)
         html_mibig.write(results.records, module_results_per_record, options, get_all_modules())
         logging.debug("Saving mibig annotation file")
-        annotation_filename = "{}.json".format(mibig_acc)
+        annotation_filename = "{}.json".format(os.path.splitext(os.path.basename(options.mibig_json))[0])
         shutil.copy(options.mibig_json, os.path.join(options.output_dir, annotation_filename))
 
     else:
@@ -518,10 +523,7 @@ def write_outputs(results: serialiser.AntismashResults, options: ConfigType) -> 
     svg.write(options, module_results_per_record)
 
     # convert records to biopython
-    bio_records = []
-    for record in results.records:
-        bio_records.append(record.to_biopython())
-
+    bio_records = [record.to_biopython() for record in results.records]
 
     # add antismash meta-annotation to records
     add_antismash_comments(list(zip(results.records, bio_records)), options)
@@ -559,24 +561,6 @@ def canonical_base_filename(input_file: str, directory: str, options: ConfigType
         update_config({"output_basename": base_filename})
 
     return os.path.join(directory, base_filename)
-
-
-def _get_mibig_acc(options: ConfigType) -> str:
-    """ Get the MIBiG accession from the input file. Only works in MIBiG mode. """
-    return os.path.splitext(os.path.basename(options.mibig_json))[0]
-
-
-def mibig_rename_records(records: List[Record], options: ConfigType) -> None:
-    """ Rename records according to MIBiG identifiers. """
-    if not options.mibig_mode:
-        return
-
-    mibig_acc = _get_mibig_acc(options)
-
-    for record in records:
-        record.id = "{}.1".format(mibig_acc)
-        record.name = mibig_acc
-        record.annotations['accessions'].insert(0, mibig_acc)
 
 
 def annotate_records(results: serialiser.AntismashResults) -> None:
@@ -806,10 +790,6 @@ def _run_antismash(sequence_file: Optional[str], options: ConfigType) -> int:
 
     results.records = record_processing.pre_process_sequences(results.records, options,
                                                               cast(AntismashModule, genefinding))
-
-    if options.mibig_mode:
-        mibig_rename_records(results.records, options)
-
     for record, module_results in zip(results.records, results.results):
         # skip if we're not interested in it
         if record.skip:
