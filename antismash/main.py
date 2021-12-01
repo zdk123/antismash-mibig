@@ -36,6 +36,12 @@ from antismash.common.path import get_full_path
 from antismash.common.secmet import Record
 from antismash.common import subprocessing
 from antismash.detection import DetectionStage
+from antismash.detection import (cluster_hmmer,
+                                 hmm_detection,
+                                 nrps_pks_domains,
+                                 genefunctions,
+                                 )
+from antismash.modules import clusterblast
 from antismash.outputs import html, svg
 from antismash.support import genefinding
 from antismash.custom_typing import AntismashModule
