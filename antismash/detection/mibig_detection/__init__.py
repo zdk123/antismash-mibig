@@ -11,12 +11,14 @@ from antismash.common.module_results import DetectionResults
 from antismash.common.secmet.record import Record
 from antismash.config import ConfigType, get_config
 from antismash.config.args import ModuleArgs
+from antismash.detection import DetectionStage
 
 from .mibig import mibig_loader, MibigAnnotations
 from .html_output import will_handle, generate_html
 
 NAME = "mibig"
 SHORT_DESCRIPTION = "module for MIBiG mode"
+DETECTION_STAGE = DetectionStage.AREA_FORMATION
 
 def get_arguments() -> ModuleArgs:
     """ Constructs commandline arguments and options for this module

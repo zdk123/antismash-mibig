@@ -73,7 +73,7 @@ def convert_regions(record: Record, options: ConfigType, result: Dict[str, Modul
         tta_codons = fetch_tta_features(region, result)
 
         try:
-            cds_annots = result["antismash.detection.mibig"].data["cluster"]["genes"]["annotations"]
+            cds_annots = result["antismash.detection.mibig_detection"].data["cluster"]["genes"]["annotations"]
         except:
             cds_annots = []
 
