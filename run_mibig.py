@@ -11,7 +11,7 @@ from subprocess import call
 from shutil import rmtree
 from datetime import datetime
 from mibig.converters.read.top import Everything
-from antismash.detection.mibig.mibig import load_cached_information
+from antismash.detection.mibig_detection.mibig import load_cached_information
 
 def write_log(text, file_path):
     with open(file_path, "a") as o:
