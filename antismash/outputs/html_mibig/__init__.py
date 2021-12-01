@@ -16,6 +16,7 @@ import scss
 from antismash.common import path
 from antismash.common.module_results import ModuleResults
 from antismash.common.secmet import Record
+from antismash.custom_typing import AntismashModule
 from antismash.config import ConfigType
 from antismash.config.args import ModuleArgs
 from antismash.outputs.html_mibig.generator import generate_webpage
@@ -60,7 +61,7 @@ def is_enabled(options: ConfigType) -> bool:
 
 
 def write(records: List[Record], results: List[Dict[str, ModuleResults]],
-          options: ConfigType) -> None:
+          options: ConfigType, all_modules: List[AntismashModule]) -> None:
     """ Writes all results to a webpage, where applicable. Writes to options.output_dir
 
         Arguments:
@@ -78,7 +79,7 @@ def write(records: List[Record], results: List[Dict[str, ModuleResults]],
     copy_template_dir('images', output_dir)
 
     # Generate structure images for records obtained from BioSQL
-    generate_webpage(records, results, options)
+    generate_webpage(records, results, options, all_modules)
 
 
 def copy_template_dir(template: str, output_dir: str, pattern: Optional[str] = None) -> None:
