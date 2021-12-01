@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Tuple, Union, cast
 from antismash.common import html_renderer, path, module_results
 from antismash.common.html_renderer import FileTemplate, HTMLSections
 from antismash.common.json import JSONOrf
-from antismash.common.layers import RecordLayer, OptionsLayer
+from antismash.common.layers import RecordLayer, RegionLayer, OptionsLayer
 from antismash.common.secmet import Record
 from antismash.custom_typing import AntismashModule
 from antismash.detection import nrps_pks_domains
@@ -24,9 +24,12 @@ from antismash.outputs.html.generator import (
     write_regions_js,
 )
 
-
 def build_json_data(records: List[Record], results: List[Dict[str, module_results.ModuleResults]],
-                    options: ConfigType) -> Tuple[List[Dict[str, Any]], List[Dict[str, Union[str, List[JSONOrf]]]]]:
+                    options: ConfigType, all_modules: List[AntismashModule]) -> Tuple[
+                        List[Dict[str, Any]],
+                        List[Dict[str, Union[str, List[JSONOrf]]]],
+                        Dict[str, Dict[str, Dict[str, Any]]]
+                    ]:
     """ Builds JSON versions of records and domains for use in drawing SVGs with
         javascript.
 
@@ -41,23 +44,27 @@ def build_json_data(records: List[Record], results: List[Dict[str, module_result
                 a list of JSON-friendly dicts representing domains
     """
 
-    from antismash import get_all_modules  # TODO break circular dependency
+#    from antismash import get_all_modules  # TODO break circular dependency
     js_records = js.convert_records(records, results, options)
 
-    js_domains = []
+#    js_domains = []
+    js_domains: List[Dict[str, Union[str, List[JSONOrf]]]] = []
+    js_results = {}
 
     for i, record in enumerate(records):
         json_record = js_records[i]
         # replace antismash cds_detail with mibig's one
         try:
-            cds_annotations = results[i]["antismash.detection.mibig"].data.cluster.genes.annotations
+            cds_annotations = results[i]["antismash.detection.mibig_detection"].data.cluster.genes.annotations
         except AttributeError:
             cds_annotations = []
         update_cds_description(json_record, cds_annotations)
 
         json_record['seq_id'] = "".join(char for char in json_record['seq_id'] if char in string.printable)
         for region, json_region in zip(record.get_regions(), json_record['regions']):
-            handlers = find_plugins_for_cluster(get_all_modules(), json_region)
+#            handlers = find_plugins_for_cluster(get_all_modules(), json_region)
+            handlers = find_plugins_for_cluster(all_modules, json_region)
+            region_results = {}
             if nrps_pks_domains not in handlers and nrps_pks_domains.domain_drawing.has_domain_details(region):
                 handlers.append(cast(AntismashModule, nrps_pks_domains))
             for handler in handlers:
@@ -68,8 +75,16 @@ def build_json_data(records: List[Record], results: List[Dict[str, module_result
                     domains_by_region = handler.generate_js_domains(region, record)
                     if domains_by_region:
                         js_domains.append(domains_by_region)
+                if hasattr(handler, "generate_javascript_data"):
+                    data = handler.generate_javascript_data(record, region, results[i][handler.__name__])
+                    region_results[handler.__name__] = data
 
-    return js_records, js_domains
+            if region_results:
+                js_results[RegionLayer.build_anchor_id(region)] = region_results
+
+#    return js_records, js_domains
+    return js_records, js_domains, js_results
+
 
 
 def generate_html_sections(records: List[RecordLayer], results: Dict[str, Dict[str, module_results.ModuleResults]],
@@ -99,7 +114,7 @@ def generate_html_sections(records: List[RecordLayer], results: Dict[str, Dict[s
 
             sections = []
             for handler in region.handlers:
-                if handler.will_handle(region.products) or handler is nrps_pks_domains:
+                if handler.will_handle(region.products, region.product_categories) or handler is nrps_pks_domains:
                     handler_results = record_result.get(handler.__name__)
                     if handler_results is None:
                         continue
@@ -110,52 +125,53 @@ def generate_html_sections(records: List[RecordLayer], results: Dict[str, Dict[s
 
 
 def generate_webpage(records: List[Record], results: List[Dict[str, module_results.ModuleResults]],
-                     options: ConfigType) -> None:
+                     options: ConfigType, all_modules: List[AntismashModule]) -> str:
     """ Generates and writes the HTML itself """
 
     generate_searchgtr_htmls(records, options)
-    json_records, js_domains = build_json_data(records, results, options)
-    write_regions_js(json_records, options.output_dir, js_domains)
+#    json_records, js_domains = build_json_data(records, results, options)
+#    write_regions_js(json_records, options.output_dir, js_domains)
+    json_records, js_domains, js_results = build_json_data(records, results, options, all_modules)
+    write_regions_js(json_records, options.output_dir, js_domains, js_results)
 
-    with open(os.path.join(options.output_dir, 'index.html'), 'w') as result_file:
-        template = FileTemplate(path.get_full_path(__file__, "templates", "overview.html"))
+    template = FileTemplate(path.get_full_path(__file__, "templates", "overview.html"))
 
-        options_layer = OptionsLayer(options)
-        record_layers_with_regions = []
-        record_layers_without_regions = []
-        results_by_record_id = {}  # type: Dict[str, Dict[str, module_results.ModuleResults]]
-        for record, record_results in zip(records, results):
-            if record.get_regions():
-                record_layers_with_regions.append(RecordLayer(record, None, options_layer))
-            else:
-                record_layers_without_regions.append(RecordLayer(record, None, options_layer))
-            results_by_record_id[record.id] = record_results
+    options_layer = OptionsLayer(options, all_modules)
+    record_layers_with_regions = []
+    record_layers_without_regions = []
+    results_by_record_id: Dict[str, Dict[str, module_results.ModuleResults]] = {}
+    for record, record_results in zip(records, results):
+        if record.get_regions():
+            record_layers_with_regions.append(RecordLayer(record, None, options_layer))
+        else:
+            record_layers_without_regions.append(RecordLayer(record, None, options_layer))
+        results_by_record_id[record.id] = record_results
 
-        regions_written = sum(len(record.get_regions()) for record in records)
-        job_id = os.path.basename(options.output_dir)
+    regions_written = sum(len(record.get_regions()) for record in records)
+    job_id = os.path.basename(options.output_dir)
 
-        mibig_id = os.path.splitext(os.path.basename(options.mibig_json))[0]
-        annotation_filename = "{}.json".format(mibig_id)
-        page_title = mibig_id
+    mibig_id = os.path.splitext(os.path.basename(options.mibig_json))[0]
+    annotation_filename = "{}.json".format(mibig_id)
+    page_title = mibig_id
 
-        html_sections = generate_html_sections(record_layers_with_regions, results_by_record_id, options)
+    html_sections = generate_html_sections(record_layers_with_regions, results_by_record_id, options)
 
-        svg_tooltip = ("Shows the layout of the region, marking coding sequences and areas of interest. "
-                       "Clicking a gene will select it and show any relevant details. "
-                       "Clicking an area feature (e.g. a candidate cluster) will select all coding "
-                       "sequences within that area. Double clicking an area feature will zoom to that area. "
-                       "Multiple genes and area features can be selected by clicking them while holding the Ctrl key."
-                       )
+    svg_tooltip = ("Shows the layout of the region, marking coding sequences and areas of interest. "
+                   "Clicking a gene will select it and show any relevant details. "
+                   "Clicking an area feature (e.g. a candidate cluster) will select all coding "
+                   "sequences within that area. Double clicking an area feature will zoom to that area. "
+                   "Multiple genes and area features can be selected by clicking them while holding the Ctrl key."
+                   )
 
-        aux = template.render(records=record_layers_with_regions, options=options_layer,
-                              version=options.version, extra_data=js_domains,
-                              regions_written=regions_written, sections=html_sections,
-                              results_by_record_id=results_by_record_id,
-                              config=options, job_id=job_id, page_title=page_title,
-                              records_without_regions=record_layers_without_regions,
-                              svg_tooltip=svg_tooltip,
-                              annotation_filename=annotation_filename, mibig_id=mibig_id)
-        result_file.write(aux)
+    content = template.render(records=record_layers_with_regions, options=options_layer,
+                          version=options.version, extra_data=js_domains,
+                          regions_written=regions_written, sections=html_sections,
+                          results_by_record_id=results_by_record_id,
+                          config=options, job_id=job_id, page_title=page_title,
+                          records_without_regions=record_layers_without_regions,
+                          svg_tooltip=svg_tooltip,
+                          annotation_filename=annotation_filename, mibig_id=mibig_id)
+    return content
 
 
 def update_cds_description(js_record, annotations):
