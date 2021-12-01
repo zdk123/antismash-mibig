@@ -11,7 +11,7 @@ from subprocess import call
 from shutil import rmtree
 from datetime import datetime
 from mibig.converters.read.top import Everything
-from antismash.detection.mibig.mibig import load_cached_information
+from antismash.detection.mibig_detection.mibig import load_cached_information
 
 def write_log(text, file_path):
     with open(file_path, "a") as o:
@@ -95,7 +95,7 @@ def _main():
             print("Generating antiSMASH output for {}".format(mibig_acc))
             with open(path.join(output_path, "{}.1.json".format(mibig_acc)), "r") as result_json_txt:
                 result_json = json.load(result_json_txt)
-                assert len(result_json["records"]) == 1 and "antismash.detection.mibig" in result_json["records"][0]["modules"]
+                assert len(result_json["records"]) == 1 and "antismash.detection.mibig_detection" in result_json["records"][0]["modules"]
                 region_acc = "{}.1.region001".format(mibig_acc)
             reusable_as5_json_path = path.join(output_path, "generated", "{}.json".format(region_acc))
             region_gbk_path = path.join(output_path, "{}.gbk".format(region_acc))

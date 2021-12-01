@@ -39,7 +39,7 @@ from antismash.detection import DetectionStage
 from antismash.outputs import html, svg
 from antismash.support import genefinding
 from antismash.custom_typing import AntismashModule
-from antismash.detection import mibig
+from antismash.detection import mibig_detection as mibig
 from antismash.outputs import html_mibig
 
 __version__ = "6.1.0"
