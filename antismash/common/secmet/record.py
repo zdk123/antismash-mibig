@@ -75,6 +75,7 @@ class Record:
         self.skip: Optional[str] = None  # TODO: move to yet another abstraction layer?
         self._deduplicated_cds_names: Dict[str, List[str]] = {}
         self._altered_from_input: List[str] = []
+
         self._genes: List[Gene] = []
         self._genes_by_name: Dict[str, List[Gene]] = defaultdict(list)
 
