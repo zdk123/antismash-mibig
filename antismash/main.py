@@ -556,12 +556,12 @@ def write_outputs(results: serialiser.AntismashResults, options: ConfigType) -> 
     logging.debug("Creating results page")
     if options.mibig_mode:
         mibig_acc = _get_mibig_acc(options)
-        html_mibig.write(results.records, module_results_per_record, options)
+        html_mibig.write(results.records, module_results_per_record, options, get_all_modules())
         logging.debug("Saving mibig annotation file")
         annotation_filename = "{}.json".format(mibig_acc)
         shutil.copy(options.mibig_json, os.path.join(options.output_dir, annotation_filename))
     else:
-        html.write(results.records, module_results_per_record, options)
+        html.write(results.records, module_results_per_record, options, get_all_modules())
 
     logging.debug("Creating results SVGs")
     svg.write(options, module_results_per_record)
