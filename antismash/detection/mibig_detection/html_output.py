@@ -18,7 +18,7 @@ from mibig.converters.read.cluster import Publication
 from .mibig import MibigAnnotations
 
 
-def will_handle(_products: List[str]) -> bool:
+def will_handle(_products: List[str], _categories: List[str]) -> bool:
     """ Returns true if one or more relevant products are present """
     return True
 
