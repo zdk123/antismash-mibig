@@ -43,22 +43,23 @@ def generate_html(region_layer: RegionLayer, results: ClusterCompareResults,
         divs: List[Tuple[str, str, Markup]] = []
         for variant, result in sorted(variant_results.items()):
             scores = result.scores_by_region[:DISPLAY_LIMIT]
-            scores_by_proto = result.details.details
-            tag = variant.replace(" ", "-")
-            search_type = "row"
-            kind = "Protocluster to Region"
-            if "ProtoToProto" in variant:
-                kind = "Protocluster to Protocluster"
-                search_type = "matrix"
-            elif "RegionToRegion" in variant:
-                kind = "Region to Region"
-                search_type = "single"
-                assert isinstance(scores_by_proto, list)
-                scores_by_proto = scores_by_proto[:DISPLAY_LIMIT]
-            div = generate_div(tag, region_layer, record_layer, search_type,
-                               tooltip, scores, scores_by_proto,
-                               len(divs) == 0, label, db_results.url)
-            divs.append((tag, kind, div))
+            if len(scores) > 0:
+                scores_by_proto = result.details.details
+                tag = variant.replace(" ", "-")
+                search_type = "row"
+                kind = "Protocluster to Region"
+                if "ProtoToProto" in variant:
+                    kind = "Protocluster to Protocluster"
+                    search_type = "matrix"
+                elif "RegionToRegion" in variant:
+                    kind = "Region to Region"
+                    search_type = "single"
+                    assert isinstance(scores_by_proto, list)
+                    scores_by_proto = scores_by_proto[:DISPLAY_LIMIT]
+                div = generate_div(tag, region_layer, record_layer, search_type,
+                                   tooltip, scores, scores_by_proto,
+                                   len(divs) == 0, label, db_results.url)
+                divs.append((tag, kind, div))
         template = FileTemplate(path.get_full_path(__file__, "templates", "gathered.html"))
         markup = template.render(variants=divs, class_name=label, description="Similar gene clusters",
                                  tooltip=tooltip, anchor=region_layer.anchor_id)

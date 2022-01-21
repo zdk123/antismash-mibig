@@ -64,7 +64,6 @@ def build_json_data(records: List[Record], results: List[Dict[str, module_result
 
         json_record['seq_id'] = "".join(char for char in json_record['seq_id'] if char in string.printable)
         for region, json_region in zip(record.get_regions(), json_record['regions']):
-#            handlers = find_plugins_for_cluster(get_all_modules(), json_region)
             handlers = find_plugins_for_cluster(all_modules, json_region)
             region_results = {}
             if nrps_pks_domains not in handlers and nrps_pks_domains.domain_drawing.has_domain_details(region):
@@ -80,6 +79,13 @@ def build_json_data(records: List[Record], results: List[Dict[str, module_result
                 if hasattr(handler, "generate_javascript_data"):
                     data = handler.generate_javascript_data(record, region, results[i][handler.__name__])
                     region_results[handler.__name__] = data
+
+            for aggregator in VISUALISERS:
+                if not hasattr(aggregator, "generate_javascript_data"):
+                    continue
+                if aggregator.has_enough_results(record, region, results[i]):
+                    data = aggregator.generate_javascript_data(record, region, results[i])
+                    region_results[aggregator.__name__] = data
 
             if region_results:
                 js_results[RegionLayer.build_anchor_id(region)] = region_results

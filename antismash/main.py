@@ -41,7 +41,7 @@ from antismash.detection import (cluster_hmmer,
                                  nrps_pks_domains,
                                  genefunctions,
                                  )
-from antismash.modules import clusterblast
+from antismash.modules import clusterblast, cluster_compare
 from antismash.outputs import html, svg
 from antismash.support import genefinding
 from antismash.custom_typing import AntismashModule
@@ -80,7 +80,6 @@ def _gather_detection_modules() -> Dict[DetectionStage, List[AntismashModule]]:
 
 _ANALYSIS_MODULES = _gather_analysis_modules()
 _DETECTION_MODULES = _gather_detection_modules()
-
 
 def get_all_modules() -> List[AntismashModule]:
     """ Return a list of default modules
@@ -356,7 +355,7 @@ def analyse_record(record: Record, options: ConfigType, modules: List[AntismashM
     timings: Dict[str, float] = {}
     # try to run the given modules over the record
     if options.mibig_mode: # override for mibig_mode specific modules
-        modules = [cast(AntismashModule, clusterblast)]
+        modules = [cast(AntismashModule, clusterblast), cast(AntismashModule, cluster_compare)]
     for module in modules:
         run_module(record, module, options, previous_result, timings)
     return timings
