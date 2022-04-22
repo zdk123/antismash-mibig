@@ -48,7 +48,7 @@ from antismash.custom_typing import AntismashModule
 from antismash.detection import mibig_detection as mibig
 from antismash.outputs import html_mibig
 
-__version__ = "6.1.0"
+__version__ = "6.1.1"
 
 
 def _gather_analysis_modules() -> List[AntismashModule]:
